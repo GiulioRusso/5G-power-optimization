@@ -8,6 +8,13 @@ clear all
 close all 
 clc
 
+% Random seed (fixed so that the PNGs in figures/ are reproducible)
+seed = 42;
+rng(seed, 'twister');
+
+% Output folder for the figures
+img_dir = fullfile(fileparts(mfilename('fullpath')), '..', '..', 'figures');
+
 % Number of users
 K = 10;
 
@@ -41,7 +48,7 @@ end
 
 % Path Loss and Power Noise parameters
 PLo = 10^(-0.1 * 84);
-do = 35;
+d0 = 35;
 No_dBm = -140;
 No = (1e-3) * 10^(0.1 * No_dBm);
 F = 1;
@@ -51,7 +58,7 @@ eta = 3.5;
 PL_R = zeros(K, Np);
 for np=1:Np
     for k=1:K
-        PL_R(k, np) = sqrt(2 * PLo)./sqrt(1 + (D(k, np)./do).^(eta));
+        PL_R(k, np) = sqrt(2 * PLo)./sqrt(1 + (D(k, np)./d0).^(eta));
     end
 end
 
@@ -148,13 +155,12 @@ EE_av = mean(EE, 2) / 1e6; % (length(P_max) x Np) -> (length(P_max) x 1)
 EE_opt_av = mean(EE_opt, 2) / 1e6; % (length(P_max) x Np) -> (length(P_max) x 1)
 EE_opt_I_av = mean(EE_opt_I, 2) / 1e6; % (length(P_max) x Np) -> (length(P_max) x 1)
 
-% Plot
-sgtitle('UPLINK', 'FontName', 'Menlo');
+% Plots (each figure is also saved to figures/)
 
 % Random users plot
-subplot(1, 3, 1);
+figure;
 pbaspect([1 1 1]);
-title('Random users distribution with the BR Station for one attempt');
+title('Random users distribution with the BS for one attempt');
 hold on;
 plot(Ux(:,Np), Uy(:,Np), 'x', 'linewidth', 1, 'markersize', 5);
 axis ([-l/2 l/2 -l/2 l/2]);
@@ -163,35 +169,38 @@ ylabel ('m');
 % Cell plot
 plot(Uxc, Uyc, '*', 'linewidth', 1, 'markersize', 5);
 grid on;
+print(fullfile(img_dir, 'Users.png'), '-dpng', '-r150');
 
 % Sum Capacity plot
-subplot(1, 3, 2);
+figure;
 pbaspect([1 1 1]);
-title(['Sum Rates average with antennas = ', num2str(N)]);
+title(['UPLINK: Sum Rates average with antennas = ', num2str(N)]);
 hold on;
-% with Uniform Power Conditions
+% with maximum power, no interference
 semilogy(P_dB_max, Ctot_av, '-or', 'linewidth', 2, 'markersize', 3);
-% with Uniform Power Conditions
+% with maximum power, interference
 semilogy(P_dB_max, Ctot_I_av, '-ob', 'linewidth', 2, 'markersize', 3);
 xlabel ('Power dB [dB W]');
 ylabel ('Sum Rate [bit / s / Hz]');
-legend('No Interference and Optimal Power Allocation', 'Interference and Optimal Power Allocation', 'Location', 'northwest');
+legend('No Interference and Optimal Power Allocation', 'Interference and Optimal Power Allocation', 'Location', 'southeast');
 grid on;
+print(fullfile(img_dir, 'SumRate-power-uplink.png'), '-dpng', '-r150');
 
 % Energy Efficiencies plot
-subplot(1, 3, 3);
+figure;
 pbaspect([1 1 1]);
-title(['Energy Efficiencies average with antennas = ', num2str(N)]);
+title(['UPLINK: Energy Efficiencies average with antennas = ', num2str(N)]);
 hold on;
 % with Dinkelbach and no interference
 semilogy(P_dB_max, EE_opt_av, '-o', 'linewidth', 2, 'markersize', 3);
 % with Dinkelbach and interference
 semilogy(P_dB_max, EE_opt_I_av, '-o', 'linewidth', 2, 'markersize', 3);
-% with Optimal Power Allocation
+% with maximum power
 semilogy(P_dB_max, EE_av, '-o', 'linewidth', 2, 'markersize', 3);
 xlabel ('Power dB [dB W]');
 ylabel ('Energy Efficiency [Megabit / Joule]');
-legend('No Interference and Dinkelbach', 'Interference and Dinkelbach', 'Interference and Uniform Power conditions', 'Location', 'northwest');
+legend('No Interference and Dinkelbach', 'Interference and Dinkelbach', 'Interference and Uniform Power conditions', 'Location', 'southeast');
 grid on;
+print(fullfile(img_dir, 'EnergyEfficiency-power-uplink.png'), '-dpng', '-r150');
 
 % End Script

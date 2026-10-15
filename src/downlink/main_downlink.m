@@ -8,6 +8,13 @@ clear all
 close all 
 clc
 
+% Random seed (fixed so that the PNGs in figures/ are reproducible)
+seed = 42;
+rng(seed, 'twister');
+
+% Output folder for the figures
+img_dir = fullfile(fileparts(mfilename('fullpath')), '..', '..', 'figures');
+
 % Number of users
 K = 10;
 
@@ -41,7 +48,7 @@ end
 
 % Path Loss and Power Noise parameters
 PLo = 10^(-0.1 * 84);
-do = 35;
+d0 = 35;
 No_dBm = -140;
 No = (1e-3) * 10^(0.1 * No_dBm);
 F = 1;
@@ -51,7 +58,7 @@ eta = 3.5;
 PL_R = zeros(K, Np);
 for np=1:Np
     for k=1:K
-        PL_R(k, np) = sqrt(2 * PLo)./sqrt(1 + (D(k, np)./do).^(eta));
+        PL_R(k, np) = sqrt(2 * PLo)./sqrt(1 + (D(k, np)./d0).^(eta));
     end
 end
 
@@ -185,13 +192,12 @@ EE_av = mean(EE, 2) / 1e6; % (length(P_max) x Np) -> (length(P_max) x 1)
 EE_opt_av = mean(EE_opt, 2) / 1e6; % (length(P_max) x Np) -> (length(P_max) x 1)
 EE_opt_I_av = mean(EE_opt_I, 2) / 1e6; % (length(P_max) x Np) -> (length(P_max) x 1)
 
-% Plot
-sgtitle('DOWNLINK', 'FontName', 'Menlo');
+% Plots (each figure is also saved to figures/)
 
-% Random users plot
-subplot(2, 4, [1 5]);
+% Random users plot (same drop as the uplink script, since the seed is the same)
+figure;
 pbaspect([1 1 1]);
-title('Random users distribution with the BR Station for one attempt');
+title('Random users distribution with the BS for one attempt');
 hold on;
 plot(Ux(:, Np), Uy(:, Np), 'x', 'linewidth', 1, 'markersize', 5);
 axis ([-l/2 l/2 -l/2 l/2]);
@@ -202,9 +208,9 @@ plot(Uxc, Uyc, '*', 'linewidth', 1, 'markersize', 5);
 grid on;
 
 % Sum Capacities plot
-subplot(2, 4, [2 6]);
+figure;
 pbaspect([1 1 1]);
-title(['Sum Rates average with antennas = ', num2str(N)]);
+title(['DOWNLINK: Sum Rates average with antennas = ', num2str(N)]);
 hold on;
 % with WF and no interference
 semilogy(P_dB_max, Ctot_WF_av, '-og', 'linewidth', 2, 'markersize', 3);
@@ -214,23 +220,23 @@ semilogy(P_dB_max, Ctot_WFI_av, '-or', 'linewidth', 2, 'markersize', 3);
 semilogy(P_dB_max, Ctot_I_av, '-ob', 'linewidth', 2, 'markersize', 3);
 xlabel ('Power dB [dB W]');
 ylabel ('Sum Rate [bit / s / Hz]');
-legend('No Interference and Water Filling','Interference and Water Filling', 'Interference and Uniform Power Conditions', 'Location', 'northwest');
+legend('No Interference and Water Filling','Interference and Water Filling', 'Interference and Uniform Power Conditions', 'Location', 'southeast');
 grid on;
+print(fullfile(img_dir, 'SumRate-power-downlink.png'), '-dpng', '-r150');
 
-% Optimal Powers plot
-subplot(2, 4, 3);
-pbaspect([2 1 1]);
+% Optimal Powers plot (last power value, last attempt)
+figure('Position', [100 100 1100 300]);
+subplot(1, 2, 1);
 title(['Power distribution by Water Filling for one attempt with total Power = ', num2str(P_max(i))]);
 hold on;
 bar(P_opt(:,i,Np), 'r');
-yline(WaterLevel(i,Np), '--');
+plot([0 K+1], WaterLevel(i,Np) * [1 1], '--k');
 xlim([0 K+1]);
 xlabel ('Users');
 ylabel ('1 / \nu');
 grid on;
 % CSI plot
-subplot(2, 4, 7);
-pbaspect([2 1 1]);
+subplot(1, 2, 2);
 title('Inverse Channel State Information for one attempt');
 hold on;
 bar(1./CSI_I(:,i,Np));
@@ -238,11 +244,12 @@ xlim([0 K+1]);
 xlabel ('Users');
 ylabel ('1 / CSI');
 grid on;
+print(fullfile(img_dir, 'WaterFilling-allocation.png'), '-dpng', '-r150');
 
 % Energy Efficiencies plot
-subplot(2, 4, [4 8]);
+figure;
 pbaspect([1 1 1]);
-title(['Energy Efficiencies average with antennas = ', num2str(N)]);
+title(['DOWNLINK: Energy Efficiencies average with antennas = ', num2str(N)]);
 hold on;
 % with Dinkelbach and no interference
 semilogy(P_dB_max, EE_opt_av, '-o', 'linewidth', 2, 'markersize', 3);
@@ -252,7 +259,8 @@ semilogy(P_dB_max, EE_opt_I_av, '-o', 'linewidth', 2, 'markersize', 3);
 semilogy(P_dB_max, EE_av, '-o', 'linewidth', 2, 'markersize', 3);
 xlabel ('Power dB [dB W]');
 ylabel ('Energy Efficiency [Megabit / Joule]');
-legend('No Interference and Dinkelbach', 'Interference and Dinkelbach', 'Interference and Uniform Power Conditions', 'Location', 'northwest');
+legend('No Interference and Dinkelbach', 'Interference and Dinkelbach', 'Interference and Uniform Power Conditions', 'Location', 'southeast');
 grid on;
+print(fullfile(img_dir, 'EnergyEfficiency-power-downlink.png'), '-dpng', '-r150');
 
 % End Script
