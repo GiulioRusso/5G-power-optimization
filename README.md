@@ -88,12 +88,12 @@ with the uplink constraints $0 \le p_k \le P_{\max}$ (and $P_c = \sum_k P_{c,k}$
 The fractional problem is solved through the auxiliary function
 
 $$
-F(\lambda) = \max_{\mathbf p}\left\{ R(\mathbf p) - \lambda \left( \sum_k \mu_k p_k + P_c \right) \right\},
+F(\lambda) = \max_{\mathbf p}\left\lbrace R(\mathbf p) - \lambda \left( \sum_k \mu_k p_k + P_c \right) \right\rbrace,
 $$
 
 whose root $F(\lambda^\ast) = 0$ is the optimal energy efficiency. `Dinkelbach.m` iterates
 
-1. $\mathbf p_n = \arg\max_{\mathbf p} \left\{ R(\mathbf p) - \lambda_n \left( \sum_k \mu_k p_k + P_c \right) \right\}$
+1. $\mathbf p_n = \arg\max_{\mathbf p} \left\lbrace R(\mathbf p) - \lambda_n \left( \sum_k \mu_k p_k + P_c \right) \right\rbrace$
 2. $\lambda_{n+1} = \dfrac{R(\mathbf p_n)}{\sum_k \mu_k p_{k,n} + P_c}$
 
 starting from the baseline efficiency (uplink, first power value; later values warm-start from the previous optimum) or the water-filling efficiency (downlink). The uplink stops when $F(\lambda_n) < \epsilon = 10^{-3}$, the downlink when $\lambda_{n+1} - \lambda_n < 10^{-10}$.
